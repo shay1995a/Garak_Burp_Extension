@@ -1,0 +1,16 @@
+# Normalise line endings in the repository, and check files out in the form the
+# tool that reads them needs. Without the eol pins, a Windows clone gets CRLF in
+# build.sh and bash refuses to run it.
+* text=auto
+
+*.sh    text eol=lf
+*.py    text eol=lf
+*.ps1   text eol=crlf
+
+*.java  text
+*.md    text
+*.json  text
+*.yml   text
+
+*.jar   binary
+*.png   binary

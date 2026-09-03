@@ -1,0 +1,31 @@
+# Build output
+build/
+
+# Third-party jars, fetched on demand by build.sh / build.ps1.
+# montoya-api in particular is PortSwigger's to distribute, not ours.
+lib/*.jar
+
+# garak run directories, if the default location is overridden into the tree
+garak_runs/
+*.report.jsonl
+*.hitlog.jsonl
+*.report.html
+
+# Editors and tooling
+.idea/
+*.iml
+.vscode/
+.classpath
+.project
+.settings/
+*.swp
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Python bytecode from tools/
+__pycache__/
+*.pyc

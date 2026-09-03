@@ -1,0 +1,75 @@
+name: build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      # Only the bridge wire test needs a third-party package, and it needs the same
+      # client stack garak uses.
+      - name: Install test dependencies
+        run: python -m pip install --upgrade pip requests
+
+      - name: Build
+        run: ./build.sh
+
+      # Runs the jar load, unit, bridge wire and garak contract suites. No network and no
+      # garak install needed: tools/fake_garak.py stands in for the real thing, and the
+      # probe catalogue tests skip themselves when garak is absent.
+      - name: Test
+        run: ./tools/run-tests.sh
+
+      - name: Upload extension jar
+        uses: actions/upload-artifact@v4
+        with:
+          name: garak-bridge-jar
+          path: build/garak-bridge.jar
+          if-no-files-found: error
+
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      # The PowerShell build path is the one this project cannot exercise locally, so it is
+      # worth a job of its own even though the runtime tests run on Linux.
+      - name: Build
+        shell: pwsh
+        run: .\build.ps1
+
+      - name: Check the jar is loadable the way Burp loads it
+        shell: pwsh
+        run: |
+          $files = Get-ChildItem -Recurse -Filter '*.java' -Path 'src\test\java' | ForEach-Object { $_.FullName }
+          Set-Content -Path "$env:TEMP\tests.txt" -Value $files
+          New-Item -ItemType Directory -Force -Path build\test-classes | Out-Null
+          javac --release 17 -nowarn -cp "lib\montoya-api-2026.7.jar;lib\gson-2.14.0.jar;build\classes" -d build\test-classes "@$env:TEMP\tests.txt"
+          java -cp "lib\montoya-api-2026.7.jar;lib\gson-2.14.0.jar;build\classes;build\test-classes" burp.garak.JarLoadTest
+          java -cp "lib\montoya-api-2026.7.jar;lib\gson-2.14.0.jar;build\classes;build\test-classes" burp.garak.Tests
