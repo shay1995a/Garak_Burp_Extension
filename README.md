@@ -1,6 +1,6 @@
 # garak Bridge
 
-[![build](https://github.com/OWNER/REPO/actions/workflows/build.yml/badge.svg)](https://github.com/OWNER/REPO/actions/workflows/build.yml)
+[![build](https://github.com/shay1995a/Garak_Burp_Extension/actions/workflows/build.yml/badge.svg)](https://github.com/shay1995a/Garak_Burp_Extension/actions/workflows/build.yml)
 [![licence: Apache-2.0](https://img.shields.io/badge/licence-Apache--2.0-blue.svg)](LICENSE)
 
 A Burp Suite extension for running [garak](https://garak.ai)'s LLM vulnerability probes
