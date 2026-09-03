@@ -582,9 +582,14 @@ public final class Tests {
                         + garakTimeout + "s > " + bridgeWorstCase + "s)",
                 garakTimeout > bridgeWorstCase);
 
-        JsonObject run = ConfigWriter.runSettings(Path.of("/tmp/run-dir"), config);
-        is("report_dir is absolute", "/tmp/run-dir",
-                Json.string(run.getAsJsonObject("reporting"), "report_dir", ""));
+        // garak resolves a relative report_dir against its own data directory, so it has to
+        // go out absolute. Assert the property, not a literal path: "/tmp/run-dir" is
+        // absolute on POSIX but resolves to "D:\tmp\run-dir" on a Windows runner.
+        Path runDir = Path.of("run-dir");
+        JsonObject run = ConfigWriter.runSettings(runDir, config);
+        String reportDir = Json.string(run.getAsJsonObject("reporting"), "report_dir", "");
+        ok("report_dir is absolute", Path.of(reportDir).isAbsolute());
+        is("report_dir is the run directory", runDir.toAbsolutePath().toString(), reportDir);
         is("generations", 1, Json.integer(run.getAsJsonObject("run"), "generations", -1));
         ok("seed is omitted when unset", !run.getAsJsonObject("run").has("seed"));
 
